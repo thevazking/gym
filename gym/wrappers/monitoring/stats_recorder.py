@@ -7,7 +7,7 @@ from gym.utils import atomic_write
 from gym.utils.json_utils import json_encode_np
 
 class StatsRecorder(object):
-    def __init__(self, directory, file_prefix, autoreset=False, env_id=None):
+    def __init__(self, directory, file_prefix, autoreset=False, env_id=None, detailed=True):
         self.autoreset = autoreset
         self.env_id = env_id
 
@@ -17,6 +17,20 @@ class StatsRecorder(object):
         self.episode_lengths = []
         self.episode_rewards = []
         self.episode_types = [] # experimental addition
+
+        # For Episode Sequence Vis #
+        detailed = self.detailed
+        if self.detailed:
+            self.episode_reward_sequences = []
+            self.episode_observation_sequences = []
+            self.episode_info_sequences = []
+
+            self.reward_sequence = []
+            self.observation_sequence = []
+            self.info_sequence = []
+        ####################################
+
+
         self._type = 't'
         self.timestamps = []
         self.steps = None
@@ -53,6 +67,13 @@ class StatsRecorder(object):
         self.rewards += reward
         self.done = done
 
+        # For Episode Sequence Vis #
+        if self.detailed:
+            self.reward_sequence.append(reward)
+            self.observation_sequence.append(observation)
+            self.info_sequence.append(info)
+        ####################################
+
         if done:
             self.save_complete()
 
@@ -85,6 +106,11 @@ class StatsRecorder(object):
             self.episode_rewards.append(float(self.rewards))
             self.timestamps.append(time.time())
 
+            if self.detailed:
+                self.episode_reward_sequences.append(self.reward_sequence)
+                self.episode_observation_sequences.append(self.observation_sequence)
+                self.episode_info_sequences.append(self.info_sequence)
+
     def close(self):
         self.flush()
         self.closed = True
@@ -94,10 +120,22 @@ class StatsRecorder(object):
             return
 
         with atomic_write.atomic_write(self.path) as f:
-            json.dump({
-                'initial_reset_timestamp': self.initial_reset_timestamp,
-                'timestamps': self.timestamps,
-                'episode_lengths': self.episode_lengths,
-                'episode_rewards': self.episode_rewards,
-                'episode_types': self.episode_types,
-            }, f, default=json_encode_np)
+            if self.detailed:
+                json.dump({
+                    'initial_reset_timestamp': self.initial_reset_timestamp,
+                    'timestamps': self.timestamps,
+                    'episode_lengths': self.episode_lengths,
+                    'episode_rewards': self.episode_rewards,
+                    'episode_types': self.episode_types,
+                    'episode_reward_sequences': self.episode_reward_sequences,
+                    'episode_observation_sequences': self.episode_observation_sequences,
+                    'episode_info_sequences': self.episode_info_sequences,
+                }, f, default=json_encode_np)
+            else:
+                json.dump({
+                    'initial_reset_timestamp': self.initial_reset_timestamp,
+                    'timestamps': self.timestamps,
+                    'episode_lengths': self.episode_lengths,
+                    'episode_rewards': self.episode_rewards,
+                    'episode_types': self.episode_types,
+                }, f, default=json_encode_np)
