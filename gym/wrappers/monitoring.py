@@ -18,6 +18,15 @@ class Monitor(Wrapper):
 
         self.videos = []
 
+        # For Episode Sequence Vis #
+        if hasattr(self.env, "detailed"):
+            print ("has detailed")
+            self.detailed = self.env.detailed
+        else:
+            print ("has not detailed") 
+            self.detailed = False
+        ############################
+
         self.stats_recorder = None
         self.video_recorder = None
         self.enabled = False
@@ -107,7 +116,7 @@ class Monitor(Wrapper):
         self.file_prefix = FILE_PREFIX
         self.file_infix = '{}.{}'.format(self._monitor_id, uid if uid else os.getpid())
 
-        self.stats_recorder = stats_recorder.StatsRecorder(directory, '{}.episode_batch.{}'.format(self.file_prefix, self.file_infix), autoreset=self.env_semantics_autoreset, env_id=env_id)
+        self.stats_recorder = stats_recorder.StatsRecorder(directory, '{}.episode_batch.{}'.format(self.file_prefix, self.file_infix), autoreset=self.env_semantics_autoreset, env_id=env_id, detailed=self.detailed)
 
         if not os.path.exists(directory): os.mkdir(directory)
         self.write_upon_reset = write_upon_reset
