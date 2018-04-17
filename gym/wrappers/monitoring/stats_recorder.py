@@ -19,7 +19,8 @@ class StatsRecorder(object):
         self.episode_types = [] # experimental addition
 
         # For Episode Sequence Vis #
-        detailed = self.detailed
+        self.detailed = detailed
+        self.detailed = True
         if self.detailed:
             self.episode_reward_sequences = []
             self.episode_observation_sequences = []
@@ -73,6 +74,7 @@ class StatsRecorder(object):
             self.observation_sequence.append(observation)
             self.info_sequence.append(info)
         ####################################
+        print("after_step")
 
         if done:
             self.save_complete()
@@ -95,6 +97,11 @@ class StatsRecorder(object):
     def after_reset(self, observation):
         self.steps = 0
         self.rewards = 0
+        if self.detailed:
+            self.reward_sequence = []
+            self.observation_sequence = []
+            self.info_sequence = []
+
         # We write the type at the beginning of the episode. If a user
         # changes the type, it's more natural for it to apply next
         # time the user calls reset().
@@ -110,6 +117,7 @@ class StatsRecorder(object):
                 self.episode_reward_sequences.append(self.reward_sequence)
                 self.episode_observation_sequences.append(self.observation_sequence)
                 self.episode_info_sequences.append(self.info_sequence)
+        print("episode rewards afeer save_complete {}".format(self.episode_rewards))
 
     def close(self):
         self.flush()
@@ -120,6 +128,8 @@ class StatsRecorder(object):
             return
 
         with atomic_write.atomic_write(self.path) as f:
+            print("episode_rewards")
+            print(self.episode_rewards)
             if self.detailed:
                 json.dump({
                     'initial_reset_timestamp': self.initial_reset_timestamp,

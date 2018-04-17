@@ -24,7 +24,8 @@ class Monitor(Wrapper):
             print ( "has not detailed")
             self.detailed = False
         ############################
-        print(self.detailed); import sys; sys.exit()
+        # print(self.detailed); import sys; sys.exit()
+        self.detailed = True
 
         self.stats_recorder = None
         self.video_recorder = None
